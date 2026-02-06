@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EngineerQuest | Battle Arena</title>
+    <meta name="description"
+        content="Enter the code dimension. Solve algorithmic challenges and rise through the ranks.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00ffff;
+            --secondary: #ff00ff;
+            --accent: #00ff88;
+            --gold: #ffd700;
+            --bg-dark: #050510;
+            --bg-card: rgba(15, 15, 35, 0.8);
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg-dark);
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Vignette Overlay */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Main Layout */
+        .game-layout {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            grid-template-rows: auto 1fr;
+            height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .player-stats {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+        }
+
+        .stat-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .rank-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 30px;
+        }
+
+        .rank-symbol {
+            font-size: 24px;
+        }
+
+        .rank-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rank-name {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            color: var(--gold);
+            font-size: 0.9rem;
+        }
+
+        .xp-mini-bar {
+            width: 100px;
+            height: 4px;
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .xp-mini-fill {
+            height: 100%;
+            background: var(--gold);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        /* Zone Sidebar */
+        .zone-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 3px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .zone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .zone-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .zone-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: transparent;
+            transition: background 0.3s ease;
+        }
+
+        .zone-card:hover {
+            background: rgba(0, 255, 255, 0.05);
+            border-color: rgba(0, 255, 255, 0.2);
+            transform: translateX(4px);
+        }
+
+        .zone-card.active {
+            background: rgba(0, 255, 255, 0.08);
+            border-color: rgba(0, 255, 255, 0.3);
+        }
+
+        .zone-card.active::before {
+            background: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .zone-card.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .zone-icon {
+            font-size: 28px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .zone-info {
+            flex: 1;
+        }
+
+        .zone-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .zone-progress {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .zone-mastery-bar {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1.5px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .zone-mastery-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 1.5px;
+        }
+
+        .zone-lock {
+            font-size: 18px;
+            color: var(--text-dim);
+        }
+
+        /* Battle Arena (Center) */
+        .arena-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .arena-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .arena-zone-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .arena-zone-icon {
+            font-size: 32px;
+        }
+
+        .arena-zone-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .arena-mastery {
+            text-align: right;
+        }
+
+        .arena-mastery-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .arena-mastery-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--gold), #ffaa00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .arena-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        /* Problem Card */
+        .problem-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .problem-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .problem-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 20px;
+            width: fit-content;
+        }
+
+        .difficulty-badge.easy {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .difficulty-badge.medium {
+            background: rgba(255, 200, 0, 0.15);
+            color: #ffc800;
+            border: 1px solid rgba(255, 200, 0, 0.3);
+        }
+
+        .difficulty-badge.hard {
+            background: rgba(255, 80, 80, 0.15);
+            color: #ff5050;
+            border: 1px solid rgba(255, 80, 80, 0.3);
+        }
+
+        .difficulty-badge.boss {
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.2), rgba(128, 0, 255, 0.2));
+            color: var(--secondary);
+            border: 1px solid rgba(255, 0, 255, 0.4);
+            animation: bossPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes bossPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 5px rgba(255, 0, 255, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(255, 0, 255, 0.6);
+            }
+        }
+
+        .problem-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .xp-reward {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .problem-description {
+            color: var(--text-dim);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .test-cases {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .test-case {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .test-case-label {
+            color: var(--text-dim);
+            min-width: 50px;
+        }
+
+        .test-case-value {
+            color: var(--primary);
+        }
+
+        .test-case-arrow {
+            color: var(--text-dim);
+        }
+
+        .test-case-expected {
+            color: var(--accent);
+        }
+
+        /* Code Editor */
+        .editor-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            min-height: 250px;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .editor-title {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .editor-lang {
+            padding: 4px 10px;
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--primary);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .code-editor {
+            flex: 1;
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            resize: none;
+            outline: none;
+        }
+
+        .code-editor::placeholder {
+            color: var(--text-dim);
+        }
+
+        /* Action Buttons */
+        .arena-actions {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #000;
+            box-shadow: 0 4px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 40px rgba(0, 255, 255, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        /* Info Panel (Right) */
+        .info-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            overflow-y: auto;
+        }
+
+        .info-section {
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .info-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        /* XP Progress */
+        .xp-progress {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .xp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .xp-current {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .xp-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .xp-bar-container {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .xp-next {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .stat-box-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-box-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .leaderboard-item.you {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.3);
+        }
+
+        .leaderboard-rank {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            width: 24px;
+            color: var(--text-dim);
+        }
+
+        .leaderboard-item:nth-child(1) .leaderboard-rank {
+            color: var(--gold);
+        }
+
+        .leaderboard-item:nth-child(2) .leaderboard-rank {
+            color: #c0c0c0;
+        }
+
+        .leaderboard-item:nth-child(3) .leaderboard-rank {
+            color: #cd7f32;
+        }
+
+        .leaderboard-name {
+            flex: 1;
+            font-size: 0.85rem;
+        }
+
+        .leaderboard-xp {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--primary);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 48px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 60px rgba(0, 255, 255, 0.2);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            animation: modalBounce 0.6s ease-out;
+        }
+
+        @keyframes modalBounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .modal-title.victory {
+            color: var(--gold);
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+        }
+
+        .modal-title.failure {
+            color: #ff5050;
+        }
+
+        .modal-message {
+            color: var(--text-dim);
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 24px;
+            white-space: pre-line;
+        }
+
+        .modal-stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 28px;
+        }
+
+        .modal-stat {
+            text-align: center;
+        }
+
+        .modal-stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .modal-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Floating Particles */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+            animation: floatUp 10s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        @keyframes floatUp {
+
+            0%,
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+
+            10% {
+                opacity: 0.8;
+            }
+
+            90% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr;
+            }
+
+            .zone-panel {
+                display: none;
+            }
+
+            .info-panel {
+                display: none;
+            }
+
+            .header {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+
+            .player-stats {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game-layout {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .header {
+                padding: 12px 16px;
+            }
+
+            .logo-text {
+                display: none;
+            }
+
+            .arena-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Floating Particles -->
+    <div class="particles-container" id="particles"></div>
+
+    <!-- Main Layout -->
+    <div class="game-layout">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">⚔️</div>
+                <span class="logo-text">EngineerQuest</span>
+            </div>
+            <div class="player-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">🎯</span>
+                    <div class="stat-details">
+                        <span class="stat-value" id="accuracy">100%</span>
+                        <span class="stat-label">Accuracy</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⚡</span>
+                    <div class="stat-details">
+                        <span class="stat-value" id="problems-solved">0</span>
+                        <span class="stat-label">Solved</span>
+                    </div>
+                </div>
+            </div>
+            <div class="rank-badge">
+                <span class="rank-symbol" id="rank-symbol">⚔️</span>
+                <div class="rank-info">
+                    <span class="rank-name" id="player-rank">Trainee</span>
+                    <div class="xp-mini-bar">
+                        <div class="xp-mini-fill" id="xp-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Zone Sidebar -->
+        <aside class="zone-panel">
+            <h2 class="panel-title">Zones</h2>
+            <div class="zone-list" id="zone-grid">
+                <!-- Zones dynamically inserted -->
+            </div>
+        </aside>
+
+        <!-- Battle Arena -->
+        <main class="arena-panel" id="battle-arena">
+            <div class="arena-header">
+                <div class="arena-zone-info">
+                    <span class="arena-zone-icon">📦</span>
+                    <span class="arena-zone-name" id="current-zone">Arrays</span>
+                </div>
+                <div class="arena-mastery">
+                    <div class="arena-mastery-label">Mastery</div>
+                    <div class="arena-mastery-value" id="mastery-text">0%</div>
+                </div>
+            </div>
+
+            <div class="arena-content">
+                <!-- Problem Section -->
+                <div class="problem-section" id="problem-card">
+                    <div class="problem-header">
+                        <div class="problem-meta">
+                            <span class="difficulty-badge" id="difficulty-badge">---</span>
+                            <h3 class="problem-title" id="problem-title">Load a Battle</h3>
+                        </div>
+                        <span class="xp-reward" id="xp-reward">+0 XP</span>
+                    </div>
+                    <p class="problem-description" id="problem-description">
+                        Click "Load Battle" to begin your coding adventure!
+                    </p>
+                    <div class="test-cases" id="test-cases">
+                        <!-- Test cases -->
+                    </div>
+                </div>
+
+                <!-- Code Editor -->
+                <div class="editor-section">
+                    <div class="editor-header">
+                        <span class="editor-title">
+                            <span>Code Editor</span>
+                            <span class="editor-lang">Python</span>
+                        </span>
+                        <div class="editor-actions">
+                            <button class="btn-icon" id="reset-btn" title="Reset">🔄</button>
+                            <button class="btn-icon" id="copy-btn" title="Copy">📋</button>
+                        </div>
+                    </div>
+                    <textarea class="code-editor" id="code-editor" spellcheck="false"
+                        placeholder="# Your code will appear here..."></textarea>
+                </div>
+            </div>
+
+            <div class="arena-actions">
+                <button class="btn btn-secondary" id="load-btn">
+                    <span>⚔️</span>
+                    <span>Load Battle</span>
+                </button>
+                <button class="btn btn-primary" id="submit-btn">
+                    <span>🚀</span>
+                    <span>Submit Code</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- Info Panel -->
+        <aside class="info-panel">
+            <div class="info-section">
+                <h3 class="info-title">Progress</h3>
+                <div class="xp-progress">
+                    <div class="xp-header">
+                        <span class="xp-current" id="total-xp">0</span>
+                        <span class="xp-label">Total XP</span>
+                    </div>
+                    <div class="xp-bar-container">
+                        <div class="xp-bar" id="xp-bar-large" style="width: 0%"></div>
+                    </div>
+                    <div class="xp-next" id="xp-text">0 / 300 to next rank</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3 class="info-title">Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-box-value" id="stat-solved">0</div>
+                        <div class="stat-box-label">Solved</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-value" id="stat-accuracy">100%</div>
+                        <div class="stat-box-label">Accuracy</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-value" id="stat-zones">1</div>
+                        <div class="stat-box-label">Zones</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-value" id="stat-streak">0</div>
+                        <div class="stat-box-label">Streak</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3 class="info-title">Leaderboard</h3>
+                <div class="leaderboard" id="leaderboard">
+                    <!-- Leaderboard items -->
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <div class="modal-icon" id="modal-icon">✨</div>
+            <h2 class="modal-title" id="modal-title">Victory!</h2>
+            <p class="modal-message" id="modal-message"></p>
+            <div class="modal-stats" id="modal-stats"></div>
+            <button class="btn btn-primary" id="modal-close">Continue</button>
+        </div>
+    </div>
+
+    <!-- Three.js for background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // ============================================
+        // BACKGROUND ANIMATION
+        // ============================================
+        const canvas = document.getElementById('bg-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x050510, 1);
+
+        // Create particle field
+        const particleCount = 5000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 1000;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 1000;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 500;
+
+            const color = new THREE.Color();
+            color.setHSL(0.5 + Math.random() * 0.2, 1, 0.5 + Math.random() * 0.3);
+            colors[i * 3] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 2,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        camera.position.z = 200;
+
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        function animateBg() {
+            requestAnimationFrame(animateBg);
+            particles.rotation.y += 0.0005;
+            particles.rotation.x = mouseY * 0.1;
+            camera.position.x += (mouseX * 50 - camera.position.x) * 0.02;
+            camera.position.y += (-mouseY * 30 - camera.position.y) * 0.02;
+            renderer.render(scene, camera);
+        }
+        animateBg();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 10 + 's';
+            particle.style.animationDuration = (8 + Math.random() * 6) + 's';
+            if (Math.random() > 0.5) {
+                particle.style.background = '#ff00ff';
+                particle.style.boxShadow = '0 0 10px rgba(255, 0, 255, 0.5)';
+            }
+            particlesContainer.appendChild(particle);
+        }
+    </script>
+
+    <!-- Hidden elements for compatibility -->
+    <div style="display:none">
+        <div id="mastery-bar"></div>
+    </div>
+
+    <!-- Game Logic -->
+    <script src="game.js"></script>
+
+    <script>
+        // Load leaderboard
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('http://localhost:5000/api/leaderboard');
+                const data = await response.json();
+                const container = document.getElementById('leaderboard');
+                container.innerHTML = '';
+
+                data.forEach((player, i) => {
+                    const item = document.createElement('div');
+                    item.className = `leaderboard-item ${player.name === 'You' ? 'you' : ''}`;
+                    item.innerHTML = `
+                        <span class="leaderboard-rank">${i + 1}</span>
+                        <span class="leaderboard-name">${player.name}</span>
+                        <span class="leaderboard-xp">${player.xp} XP</span>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch (e) {
+                console.log('Leaderboard unavailable');
+            }
+        }
+
+        // Enhanced updateUI
+        const originalUpdateUI = updateUI;
+        updateUI = function () {
+            originalUpdateUI();
+            if (player) {
+                document.getElementById('stat-solved').textContent = player.solved?.length || 0;
+                document.getElementById('stat-accuracy').textContent = Math.round((player.accuracy || 1) * 100) + '%';
+
+                // Count unlocked zones
+                let unlockedZones = 0;
+                if (zones) {
+                    Object.values(zones).forEach(z => { if (z.unlocked) unlockedZones++; });
+                }
+                document.getElementById('stat-zones').textContent = unlockedZones || 1;
+
+                // XP bar large
+                const RANKS = [
+                    { xp: 0, name: "Trainee" },
+                    { xp: 300, name: "Coder" },
+                    { xp: 800, name: "DSA Fighter" },
+                    { xp: 1500, name: "Algorithm Knight" },
+                    { xp: 3000, name: "Code Master" }
+                ];
+
+                let currentThreshold = 0;
+                let nextThreshold = 300;
+                for (let i = 0; i < RANKS.length; i++) {
+                    if (player.coding_xp >= RANKS[i].xp) {
+                        currentThreshold = RANKS[i].xp;
+                        nextThreshold = RANKS[i + 1]?.xp || RANKS[i].xp;
+                    }
+                }
+
+                const progress = ((player.coding_xp - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
+                document.getElementById('xp-bar-large').style.width = Math.min(100, progress) + '%';
+                document.getElementById('xp-text').textContent = `${nextThreshold - player.coding_xp} to next rank`;
+            }
+            loadLeaderboard();
+        };
+
+        // Initialize
+        loadLeaderboard();
+    </script>
+</body>
+
+</html>
