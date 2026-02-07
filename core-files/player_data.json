@@ -1,0 +1,21 @@
+{
+  "name": "",
+  "intelligence": 0,
+  "coding_power": 120,
+  "rank": "Operative",
+  "solved": [
+    "TC_C1",
+    "TC_C2",
+    "TC_C3",
+    "TC_C4",
+    "TC_C5"
+  ],
+  "solved_mcq": [],
+  "accuracy": 1.0,
+  "mastery": {
+    "training_camp": 100,
+    "array_forest": 0,
+    "recursion_cave": 0,
+    "dp_castle": 0
+  }
+}

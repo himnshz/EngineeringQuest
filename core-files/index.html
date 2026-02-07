@@ -502,16 +502,69 @@
             color: var(--accent);
         }
 
+        /* MCQ Options */
+        .mcq-option {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .mcq-option:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.3);
+            transform: translateX(8px);
+        }
+
+        .mcq-option.selected {
+            background: rgba(0, 255, 255, 0.15);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .mcq-option.correct {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .mcq-option.wrong {
+            background: rgba(255, 80, 80, 0.2);
+            border-color: #ff5050;
+            box-shadow: 0 0 20px rgba(255, 80, 80, 0.3);
+        }
+
+        .mcq-letter {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--primary);
+            min-width: 30px;
+        }
+
+        .mcq-text {
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
         /* Code Editor */
         .editor-section {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(20, 20, 40, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             overflow: hidden;
             min-height: 250px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .editor-header {
@@ -560,22 +613,154 @@
             transform: scale(1.1);
         }
 
-        .code-editor {
+        /* Code Editor Container */
+        .editor-container {
             flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.7), rgba(25, 25, 50, 0.6));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Line Numbers */
+        .line-numbers {
+            padding: 16px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: right;
+            user-select: none;
+            min-width: 45px;
+            overflow: hidden;
+        }
+
+        .line-numbers .line-num {
+            display: block;
+            height: 1.7em;
+        }
+
+        .line-numbers .line-num.active {
+            color: var(--primary);
+        }
+
+        /* Editor Wrapper (for layered approach) */
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+        }
+
+        /* Syntax Highlight Layer (behind textarea) */
+        .syntax-highlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            pointer-events: none;
+            color: transparent;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        /* Syntax Colors */
+        .syntax-highlight .keyword {
+            color: #ff79c6;
+        }
+
+        .syntax-highlight .function {
+            color: #50fa7b;
+        }
+
+        .syntax-highlight .string {
+            color: #f1fa8c;
+        }
+
+        .syntax-highlight .number {
+            color: #bd93f9;
+        }
+
+        .syntax-highlight .comment {
+            color: #6272a4;
+            font-style: italic;
+        }
+
+        .syntax-highlight .operator {
+            color: #ff79c6;
+        }
+
+        .syntax-highlight .builtin {
+            color: #8be9fd;
+        }
+
+        .syntax-highlight .decorator {
+            color: #ffb86c;
+        }
+
+        /* Main Code Textarea */
+        .code-editor {
+            position: relative;
             width: 100%;
+            height: 100%;
+            min-height: 200px;
             padding: 16px;
             background: transparent;
             border: none;
             color: var(--text);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             line-height: 1.7;
             resize: none;
             outline: none;
+            caret-color: var(--primary);
+            z-index: 1;
         }
 
         .code-editor::placeholder {
             color: var(--text-dim);
+        }
+
+        .code-editor::selection {
+            background: rgba(0, 255, 255, 0.3);
+        }
+
+        /* Cursor Line Highlight */
+        .cursor-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1.7em;
+            background: rgba(0, 255, 255, 0.05);
+            pointer-events: none;
+            transition: top 0.05s ease;
+        }
+
+        /* Scrollbar Styling */
+        .editor-wrapper::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .editor-wrapper::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .editor-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .editor-wrapper::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 255, 0.5);
         }
 
         /* Action Buttons */
@@ -1018,14 +1203,21 @@
             </div>
             <div class="player-stats">
                 <div class="stat-item">
-                    <span class="stat-icon">🎯</span>
+                    <span class="stat-icon">🧠</span>
                     <div class="stat-details">
-                        <span class="stat-value" id="accuracy">100%</span>
-                        <span class="stat-label">Accuracy</span>
+                        <span class="stat-value" id="intelligence-value">0</span>
+                        <span class="stat-label">Intelligence</span>
                     </div>
                 </div>
                 <div class="stat-item">
                     <span class="stat-icon">⚡</span>
+                    <div class="stat-details">
+                        <span class="stat-value" id="coding-power-value">0</span>
+                        <span class="stat-label">Coding Power</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🎯</span>
                     <div class="stat-details">
                         <span class="stat-value" id="problems-solved">0</span>
                         <span class="stat-label">Solved</span>
@@ -1055,8 +1247,8 @@
         <main class="arena-panel" id="battle-arena">
             <div class="arena-header">
                 <div class="arena-zone-info">
-                    <span class="arena-zone-icon">📦</span>
-                    <span class="arena-zone-name" id="current-zone">Arrays</span>
+                    <span class="arena-zone-icon">🎯</span>
+                    <span class="arena-zone-name" id="current-zone">Training Camp</span>
                 </div>
                 <div class="arena-mastery">
                     <div class="arena-mastery-label">Mastery</div>
@@ -1094,19 +1286,32 @@
                             <button class="btn-icon" id="copy-btn" title="Copy">📋</button>
                         </div>
                     </div>
-                    <textarea class="code-editor" id="code-editor" spellcheck="false"
-                        placeholder="# Your code will appear here..."></textarea>
+                    <div class="editor-container">
+                        <div class="line-numbers" id="line-numbers">
+                            <span class="line-num active">1</span>
+                        </div>
+                        <div class="editor-wrapper" id="editor-wrapper">
+                            <div class="cursor-line" id="cursor-line"></div>
+                            <pre class="syntax-highlight" id="syntax-highlight"></pre>
+                            <textarea class="code-editor" id="code-editor" spellcheck="false"
+                                placeholder="# Your code will appear here..."></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="arena-actions">
+                <button class="btn btn-secondary" id="load-mcq-btn">
+                    <span>🧠</span>
+                    <span>Load MCQ</span>
+                </button>
                 <button class="btn btn-secondary" id="load-btn">
                     <span>⚔️</span>
                     <span>Load Battle</span>
                 </button>
                 <button class="btn btn-primary" id="submit-btn">
                     <span>🚀</span>
-                    <span>Submit Code</span>
+                    <span>Submit</span>
                 </button>
             </div>
         </main>
